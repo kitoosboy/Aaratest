@@ -9,11 +9,12 @@ const app = express();
 
 // Initialize PostgreSQL connection pool using environment variables
 const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: {
-        rejectUnauthorized: false,
-    },
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false
+  }
 });
+
 
 
 app.use(cors());
