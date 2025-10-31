@@ -147,15 +147,16 @@
                 <div class="catagories-menu">
                     <ul>
                         <li class="active"><a href="#"></a></li>
-                        <li class="active" ><a href="">Bangles</a></li>
+                        <li class="active" ><a href="bangles.html">Bangles</a></li>
                         <li><a href="Bracelet.html">Bracelet</a></li>
-                        <li><a href="#">Decor Items</a></li>
                         <li><a href="#">Earrings</a></li>
-                        <li><a href="#">Handmade Accessories</a></li>
-                        <li><a href="#">Hair Accessories</a></li>
-                        <li><a href="#">Kids</a></li>
-                        <li><a href="#">Necklace</a></li>
-                        <li><a href="#">Return Gifts</a></li>
+                        <li><a href="#">Glass bottle</a></li>
+                        <li><a href="#">Gold plated stainless steel jewels</a></li>
+                        <li><a href="#">Home Decor</a></li>
+                        <li><a href="#">Jewellery set</a></li>
+                        <li><a href="#">Keychains</a></li>
+                        <li><a href="#">Miniature</a></li>
+                        <li><a href="#">Return gift</a></li>
                     </ul>
                 </div>
             </div>
@@ -256,7 +257,7 @@
                                         <i class="fa fa-star" aria-hidden="true"></i>
                                     </div>
                                     <div class="cart">
-                                        <a href="#" class="add-to-cart-btn" data-name="Rain Drop Bangles" data-price="180" data-image="img/product-img/Rain_Drop_Bangles.jpg" data-toggle="tooltip" data-placement="left" title="" data-original-title="Add to Cart">
+                                        <a href="#" class="add-to-cart-btn" data-name="Rain Drop Bangles" data-price="180" data-image="img/product-img/product_lela_1.jpeg" data-toggle="tooltip" data-placement="left" title="" data-original-title="Add to Cart">
                                             <img src="img/core-img/cart.png" alt="">
                                         </a>
                                     </div>
@@ -525,6 +526,20 @@
     }
     
 </script>
+
+<script>
+      async function handleCredentialResponse(response) {
+        // Send token to backend for verification
+        const res = await fetch("/verify-google", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token: response.credential }),
+        });
+
+        const data = await res.json();
+        document.body.innerHTML = `<h3>Welcome, ${data.name}</h3><p>Email: ${data.email}</p><img src="${data.picture}" width="100">`;
+      }
+    </script>
 
     <!-- ##### jQuery (Necessary for All JavaScript Plugins) ##### -->
     <script src="js/jquery/jquery-2.2.4.min.js"></script>

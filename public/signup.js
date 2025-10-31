@@ -168,6 +168,34 @@ function enforceLoginForCheckout(savedUser) {
     }
 }
 
+async function handleCredentialResponse(response) {
+    console.log("Google Token:", response.credential);
+
+    const res = await fetch("/verify-google", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: response.credential }),
+    });
+
+    const data = await res.json();
+    console.log("Server response:", data);
+
+    if (data.success) {
+        alert("Welcome " + data.name + "!");
+
+        // ✅ Save user info in cookie + localStorage
+        document.cookie = `google_user=${encodeURIComponent(JSON.stringify(data))}; path=/; max-age=${7 * 24 * 60 * 60}`;
+        localStorage.setItem("loggedInUser", data.name);
+
+        // ✅ Update your existing UI
+        updateAuthUI(data.name);
+        closeModal(); // hide signup/login modal if open
+        enforceLoginForCheckout(data.name);
+    } else {
+        alert("Google login failed.");
+    }
+}
+
 // 🔒 Blocked field handler
 function handleBlockedInteraction(e) {
     e.preventDefault();

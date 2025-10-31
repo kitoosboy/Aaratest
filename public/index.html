@@ -6,6 +6,7 @@
     <meta name="description" content="">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    
     <!-- The above 4 meta tags *must* come first in the head; any other head content must come *after* these tags -->
 
     <!-- Title  -->
@@ -17,12 +18,14 @@
     <!-- Core Style CSS -->
     <link rel="stylesheet" href="css/core-style.css">
     <link rel="stylesheet" href="./img/bg-img/3.jpg">
-    <link rel="carousel" href="./js/carousel.js"></link>
+    <link rel="carousel" href="./js/carousel.js">
+    </link>
     <!-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"> -->
     <style>
         /* Set the height and background properties dynamically */
         .carousel-item {
-            height: 500px; /* Adjust height as needed */
+            height: 500px;
+            /* Adjust height as needed */
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
@@ -31,25 +34,26 @@
 </head>
 
 <body>
-   <!-- Search Wrapper Area Start -->
-<div class="search-wrapper section-padding-100">
-    <div class="search-close">
-        <i class="fa fa-close" aria-hidden="true"></i>
-    </div>
-    <div class="container">
-        <div class="row">
-            <div class="col-12">
-                <div class="search-content">
-                    <form action="#" method="get" onsubmit="return performSearch(event)">
-                        <input type="search" name="search" id="search" placeholder="Type your keyword..." onkeyup="searchItems()">
-                        <button type="submit"><img src="img/core-img/search.png" alt=""></button>
-                    </form>
-                    <div id="search-results" class="search-results"></div> <!-- Search results container -->
+    <!-- Search Wrapper Area Start -->
+    <div class="search-wrapper section-padding-100">
+        <div class="search-close">
+            <i class="fa fa-close" aria-hidden="true"></i>
+        </div>
+        <div class="container">
+            <div class="row">
+                <div class="col-12">
+                    <div class="search-content">
+                        <form action="#" method="get" onsubmit="return performSearch(event)">
+                            <input type="search" name="search" id="search" placeholder="Type your keyword..."
+                                onkeyup="searchItems()">
+                            <button type="submit"><img src="img/core-img/search.png" alt=""></button>
+                        </form>
+                        <div id="search-results" class="search-results"></div> <!-- Search results container -->
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
     <!-- Search Wrapper Area End -->
 
@@ -88,58 +92,93 @@
                     <li><a href="checkout.html">Checkout</a></li>
                 </ul>
             </nav>
-<!-- Button Group -->
-<div class="amado-btn-group mt-30 mb-100" id="authButtons">
-    <a href="#" class="btn amado-btn mb-15" onclick="openModal('signup')">Sign Up</a>
-    <a href="#" class="btn amado-btn active" onclick="openModal('login')">Login</a>
-</div>
+            <!-- Button Group -->
+            <div class="amado-btn-group mt-30 mb-100" id="authButtons">
+                <a href="#" class="btn amado-btn mb-15" onclick="openModal('signup')">Sign Up</a>
+                <a href="#" class="btn amado-btn active" onclick="openModal('login')">Log</a>
 
-
-<!-- Modal Overlay -->
-<div id="modalOverlay" class="modal-overlay"></div>
-
-<!-- Unified Login/Signup Modal -->
-<div id="authModal" class="modal">
-    <div class="modal-content">
-        <span class="close" onclick="closeModal()">&times;</span>
-        
-        <!-- Login Form -->
-        <div id="loginForm">
-            <h2>Login</h2>
-            <input type="email" id="loginEmail" placeholder="Email">
-            <input type="password" id="loginPassword" placeholder="Password">
-            <button class="submit-btn" id="loginBtn">Login</button>
-            <div class="modal-link">
-                <a href="#" onclick="openModal('forgot'); return false;">Forgot Password?</a><br>
-                <a href="#" onclick="openModal('signup')">Don't have an account? Sign Up</a>
             </div>
-            
-            
-        </div>
 
-        <!-- Signup Form -->
-        <div id="signupForm" style="display: none;">
-            <h2>Sign Up</h2>
-            <input type="text" id="signupUsername" placeholder="Username">
-            <input type="email" id="signupEmail" placeholder="Email">
-            <input type="password" id="signupPassword" placeholder="Password">
-            <button class="submit-btn" id="signupBtn">Sign Up</button>
-            <div class="modal-link">
-                <a href="#" onclick="openModal('login')">Already have an account? Login</a>
+
+            <!-- Modal Overlay -->
+            <div id="modalOverlay" class="modal-overlay"></div>
+
+            <!-- Unified Login/Signup Modal -->
+            <div id="authModal" class="modal">
+                <div class="modal-content">
+                    <span class="close" onclick="closeModal()">&times;</span>
+
+                    <!-- Login Form -->
+                    <div id="loginForm">
+                        <h2>Login</h2>
+                        <input type="email" id="loginEmail" placeholder="Email">
+                        <input type="password" id="loginPassword" placeholder="Password">
+                        <button class="submit-btn" id="loginBtn">Login</button>
+                        <div class="modal-link">
+                            <a href="#" onclick="openModal('forgot'); return false;">Forgot Password?</a><br>
+                            <a href="#" onclick="openModal('signup')">Don't have an account? Sign Up</a>
+                        </div>
+
+
+                    </div>
+
+                    <!-- Signup Form -->
+                    <div id="signupForm" style="display: none;">
+                        <h2>Sign Up</h2>
+                        <input type="text" id="signupUsername" placeholder="Username">
+                        <input type="email" id="signupEmail" placeholder="Email">
+                        <input type="password" id="signupPassword" placeholder="Password">
+                        <button class="submit-btn" id="signupBtn">Sign Up</button>
+                        <div class="modal-link">
+                            <a href="#" onclick="openModal('login')">Already have an account? Login</a>
+                            <br>
+                            <hr>
+                        </div>
+
+                        <!-- Google button -->
+                        <div id="g_id_onload"
+                            data-client_id="980376587255-gfq843odsd62h1r2svvl9j3gbnno17ef.apps.googleusercontent.com"
+                            data-callback="handleGoogleCredentialResponse"
+                            data-ux_mode="popup">
+                        </div>
+                        <div class="g_id_signin" data-type="standard"></div>
+                        <script>
+                            async function handleCredentialResponse(response) {
+                                console.log("Google Token:", response.credential); // ✅ should log something long
+                                const res = await fetch("/verify-google", {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({ token: response.credential }) // ✅ must send { token: ... }
+                                });
+
+                                const data = await res.json();
+                                console.log("Server response:", data);
+                                if (data.success) {
+                                    alert("Welcome " + data.name);
+                                    // You can set cookies here
+                                    document.cookie = `user_email=${data.email}; path=/`;
+                                } else {
+                                    alert("Google login failed");
+                                }
+                            }
+                        </script>
+                            <!-- google auth -->
+                            <script src="https://accounts.google.com/gsi/client" async defer></script>
+                    </div>
+                </div>
             </div>
-        </div>
-    </div>
-</div>
 
-<!-- Forgot Password Form -->
-<div id="forgotForm" style="display: none;">
-    <h2>Reset Password</h2>
-    <input type="email" id="forgotEmail" placeholder="Enter your email">
-    <button class="submit-btn" id="forgotBtn">Send Reset Link</button>
-    <div class="modal-link">
-        <a href="#" onclick="openModal('login'); return false;">Back to Login</a>
-    </div>
-</div>
+
+
+            <!-- Forgot Password Form -->
+            <div id="forgotForm" style="display: none;">
+                <h2>Reset Password</h2>
+                <input type="email" id="forgotEmail" placeholder="Enter your email">
+                <button class="submit-btn" id="forgotBtn">Send Reset Link</button>
+                <div class="modal-link">
+                    <a href="#" onclick="openModal('login'); return false;">Back to Login</a>
+                </div>
+            </div>
 
 
 
@@ -165,7 +204,7 @@
 
         <!-- Product Catagories Area Start -->
         <div class="products-catagories-area clearfix ">
-                <!-- <div id="carouselExample" class="carousel slide" data-bs-ride="carousel">
+            <!-- <div id="carouselExample" class="carousel slide" data-bs-ride="carousel">
                     <div class="carousel-inner">
                         <div class="carousel-item active">
                             <img src="./img/bg-img/6a.jpg" class="d-block w-100" alt="Slide 1">
@@ -179,8 +218,8 @@
                     </div>
         
                 </div> -->
-            
-            
+
+
             <div class="amado-pro-catagory clearfix">
 
                 <!-- Single Catagory -->
@@ -204,7 +243,7 @@
                         <div class="hover-content">
                             <div class="line"></div>
                             <!-- <p>From ₹180</p> -->
-                            <h4>Bracelet</h4>
+                            <h4>Bracelets</h4>
                         </div>
                     </a>
                 </div>
@@ -314,7 +353,8 @@
                 <div class="col-12 col-lg-6 col-xl-7">
                     <div class="newsletter-text mb-100">
                         <h2>Subscribe for a <span>25% Discount</span></h2>
-                        <p>Nulla ac convallis lorem, eget euismod nisl. Donec in libero sit amet mi vulputate consectetur. Donec auctor interdum purus, ac finibus massa bibendum nec.</p>
+                        <p>Nulla ac convallis lorem, eget euismod nisl. Donec in libero sit amet mi vulputate
+                            consectetur. Donec auctor interdum purus, ac finibus massa bibendum nec.</p>
                     </div>
                 </div>
                 <!-- Newsletter Form -->
@@ -351,7 +391,10 @@
                         <!-- Footer Menu -->
                         <div class="footer_menu">
                             <nav class="navbar navbar-expand-lg justify-content-end">
-                                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#footerNavContent" aria-controls="footerNavContent" aria-expanded="false" aria-label="Toggle navigation"><i class="fa fa-bars"></i></button>
+                                <button class="navbar-toggler" type="button" data-toggle="collapse"
+                                    data-target="#footerNavContent" aria-controls="footerNavContent"
+                                    aria-expanded="false" aria-label="Toggle navigation"><i
+                                        class="fa fa-bars"></i></button>
                                 <div class="collapse navbar-collapse" id="footerNavContent">
                                     <ul class="navbar-nav ml-auto">
                                         <li class="nav-item active">
@@ -384,51 +427,51 @@
             let modal = document.getElementById('authModal');
             let allProducts = document.querySelectorAll('.single-products-catagory');
             let overlay = document.getElementById('modalOverlay');
-        
+
             modal.style.display = 'flex';
             modal.style.zIndex = '1000001';
             overlay.style.display = 'block';
             overlay.style.zIndex = '1000000';
-        
+
             allProducts.forEach(product => {
                 product.style.zIndex = '-1';
             });
-        
+
             switchForm(type);
         }
-        
+
         function closeModal() {
             let modal = document.getElementById('authModal');
             let allProducts = document.querySelectorAll('.single-products-catagory');
             let overlay = document.getElementById('modalOverlay');
-        
+
             modal.style.display = 'none';
             overlay.style.display = 'none';
             modal.style.zIndex = '-1';
-        
+
             allProducts.forEach(product => {
                 product.style.zIndex = '1';
             });
         }
-        
+
         function switchForm(type) {
             let loginForm = document.getElementById('loginForm');
             let signupForm = document.getElementById('signupForm');
             let forgotForm = document.getElementById('forgotForm');
-        
+
             loginForm.style.display = type === 'login' ? 'block' : 'none';
             signupForm.style.display = type === 'signup' ? 'block' : 'none';
             forgotForm.style.display = type === 'forgot' ? 'block' : 'none';
         }
-        </script>
-        
-   
-    
-    
-    
+    </script>
 
 
-    
+
+
+
+
+
+
 
 
     <!-- ##### jQuery (Necessary for All JavaScript Plugins) ##### -->
@@ -444,9 +487,11 @@
     <!-- <script src="js/carousel.js"></script> -->
     <script src="Auth.js"></script>
     <script src="cart.js"></script>
-    <script src="../Server.js"></script>
+    <!-- <script src="../Server.js"></script> -->
     <script src="./signup.js"></script>
     <script src="Search.js"></script>
+
+
 
 
     <div id="modalOverlay" class="modal-overlay"></div>
