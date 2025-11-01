@@ -40,6 +40,57 @@ async function saveCartToDB() {
     });
 }
 
+// get cookie
+function getCookie(name) {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(';').shift();
+}
+
+document.querySelectorAll(".add-to-cart-btn").forEach(button => {
+  button.addEventListener("click", async (e) => {
+    e.preventDefault();
+
+    const userEmail = getCookie("user_email");
+    if (!userEmail) {
+      alert("Please log in to add items to your cart.");
+      return;
+    }
+
+    const productName = button.getAttribute("data-name");
+    const productPrice = parseFloat(button.getAttribute("data-price"));
+    const productImage = button.getAttribute("data-image");
+
+    console.log("Sending cart data:", { userEmail, productName, productPrice, productImage });
+
+    try {
+      const response = await fetch("/cart/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userEmail,
+          productName,
+          productPrice,
+          productImage,
+          quantity: 1
+        })
+      });
+
+      const data = await response.json();
+      console.log("Server response:", data);
+
+      if (response.ok) {
+        alert("✅ Added to cart!");
+      } else {
+        alert("❌ Failed to add to cart.");
+      }
+    } catch (error) {
+      console.error("Add to cart error:", error);
+      alert("Server error while adding item to cart.");
+    }
+  });
+});
+
 // ✅ Render Cart
 async function renderCart() {
     const userEmail = getCookie("user_email");
