@@ -82,10 +82,12 @@ app.post("/google-login", async (req, res) => {
   const { email, name } = req.body;
 
   try {
+    if (!email) return res.status(400).json({ error: "Email missing from request" });
+
     // Check if user already exists
     let result = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
 
-    // If user does not exist, create a new record
+    // If new user, create
     if (result.rows.length === 0) {
       result = await pool.query(
         "INSERT INTO users (username, email, password) VALUES ($1, $2, $3) RETURNING *",
@@ -100,6 +102,7 @@ app.post("/google-login", async (req, res) => {
     res.status(500).json({ error: "Failed to handle Google login." });
   }
 });
+
 
 // google verification
 app.post("/verify-google", async (req, res) => {
