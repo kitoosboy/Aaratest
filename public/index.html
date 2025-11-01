@@ -118,7 +118,64 @@
                             <a href="#" onclick="openModal('forgot'); return false;">Forgot Password?</a><br>
                             <a href="#" onclick="openModal('signup')">Don't have an account? Sign Up</a>
                         </div>
+                        <hr>
+                        <!-- ✅ GOOGLE LOGIN BUTTON -->
+                        <div id="g_id_onload"
+                            data-client_id="980376587255-gfq843odsd62h1r2svvl9j3gbnno17ef.apps.googleusercontent.com"
+                            data-context="signin" data-ux_mode="popup" data-callback="handleGoogleLoginResponse">
+                        </div>
 
+                        <div class="g_id_signin" data-type="standard" data-theme="outline" data-size="large"></div>
+
+                        <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+                        <script>
+                            // Decode the JWT from Google
+                            function parseJwt(token) {
+                                try {
+                                    return JSON.parse(atob(token.split('.')[1]));
+                                } catch (e) {
+                                    console.error("JWT parse error:", e);
+                                    return {};
+                                }
+                            }
+
+                            // ✅ Handles Google login
+                            async function handleGoogleLoginResponse(response) {
+                                const data = parseJwt(response.credential);
+                                console.log("Google Login Data:", data);
+
+                                if (!data.email) {
+                                    alert("Google authentication failed: no email found.");
+                                    return;
+                                }
+
+                                try {
+                                    const res = await fetch("/google-login", {
+                                        method: "POST",
+                                        headers: { "Content-Type": "application/json" },
+                                        body: JSON.stringify({
+                                            email: data.email,
+                                            name: data.name || data.given_name || "Google User"
+                                        })
+                                    });
+
+                                    const result = await res.json();
+                                    console.log("Server response:", result);
+
+                                    if (result.user) {
+                                        alert("Welcome back, " + result.user.username + "!");
+                                        localStorage.setItem("loggedInUser", result.user.username);
+                                        window.location.href = "index.html"; // redirect to homepage or dashboard
+                                    } else {
+                                        alert("Google Login failed on server.");
+                                    }
+                                } catch (err) {
+                                    console.error("Error during Google Login:", err);
+                                    alert("Something went wrong. Please try again.");
+                                }
+                            }
+                        </script>
 
                     </div>
 
