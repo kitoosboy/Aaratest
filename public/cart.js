@@ -105,5 +105,6 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 
+
 renderCart();
 

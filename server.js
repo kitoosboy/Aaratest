@@ -1,20 +1,12 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
+
 const bcrypt = require("bcryptjs");
 const { Pool } = require("pg");
 const path = require("path");
 
-const cookieParser = require("cookie-parser");
-
 const app = express();
-app.use(cookieParser());
-
-app.use(express.json());
-app.use(express.static(path.join(__dirname, "public"))); 
-
-// serves your HTML files
-
 
 // Initialize PostgreSQL connection pool using environment variables
 const pool = new Pool({
@@ -23,24 +15,10 @@ const pool = new Pool({
     rejectUnauthorized: false
   }
 });
-const { OAuth2Client } = require("google-auth-library");
-const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 
-const allowedOrigins = [
-  "http://localhost:5000",
-  "http://127.0.0.1:5000",
-  "http://localhost:5500" // (if using Live Server / VSCode)
-];
 
-app.use(
-  cors({
-    origin: allowedOrigins,
-    methods: ["GET", "POST"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
-
+app.use(cors());
 app.use(express.json());
 
 // Serve static files from the public folder
@@ -97,6 +75,32 @@ app.post("/login", async (req, res) => {
         res.status(500).json({ error: "Something went wrong. Please try again later." });
     }
 });
+
+
+// Google Login Route
+app.post("/google-login", async (req, res) => {
+  const { email, name } = req.body;
+
+  try {
+    // Check if user already exists
+    let result = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
+
+    // If user does not exist, create a new record
+    if (result.rows.length === 0) {
+      result = await pool.query(
+        "INSERT INTO users (username, email, password) VALUES ($1, $2, $3) RETURNING *",
+        [name, email, "google_auth_user"]
+      );
+    }
+
+    const user = result.rows[0];
+    res.status(200).json({ message: "Google login successful!", user });
+  } catch (error) {
+    console.error("Google Login Error:", error);
+    res.status(500).json({ error: "Failed to handle Google login." });
+  }
+});
+
 
 pool.connect()
     .then(client => {
@@ -158,51 +162,6 @@ app.get('/get-user-details/:username', async (req, res) => {
         console.error("Get User Details Error:", error);
         res.status(500).json({ message: "Failed to fetch details." });
     }
-});
-
-
-//
-// ROUTE: Google token verification
-//
-app.post("/verify-google", async (req, res) => {
-  const token = req.body.token;
-  try {
-    const ticket = await client.verifyIdToken({
-      idToken: token,
-      audience: process.env.GOOGLE_CLIENT_ID,
-    });
-
-    const payload = ticket.getPayload(); // { name, email, picture, sub }
-    const { email, name, picture, sub } = payload;
-    const google_id = sub;
-
-    // 🗄️ Store user info in PostgreSQL if not exists
-    const result = await pool.query(
-      "SELECT * FROM google_users WHERE email = $1",
-      [email]
-    );
-
-    if (result.rows.length === 0) {
-      await pool.query(
-        "INSERT INTO google_users (google_id, name, email, picture) VALUES ($1, $2, $3, $4)",
-        [google_id, name, email, picture]
-      );
-      console.log("🆕 New Google user added:", email);
-    } else {
-      console.log("👤 Returning Google user:", email);
-    }
-
-    // 🍪 Set cookie for session tracking (1 week)
-    res.cookie("google_user", JSON.stringify({ name, email, picture }), {
-      httpOnly: true,
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
-
-    res.json({ success: true, name, email, picture });
-  } catch (error) {
-    console.error("Google login failed:", error);
-    res.status(400).json({ success: false, error: "Invalid token" });
-  }
 });
 
 // Save User Details Route
