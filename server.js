@@ -101,6 +101,24 @@ app.post("/google-login", async (req, res) => {
   }
 });
 
+// google verification
+app.post("/verify-google", async (req, res) => {
+  const { token } = req.body;
+  try {
+    const ticket = await client.verifyIdToken({
+      idToken: token,
+      audience: "980376587255-gfq843odsd62h1r2svvl9j3gbnno17ef.apps.googleusercontent.com"
+    });
+
+    const payload = ticket.getPayload();
+    const { name, email } = payload;
+    res.json({ success: true, name, email });
+  } catch (error) {
+    console.error(error);
+    res.json({ success: false });
+  }
+});
+
 
 pool.connect()
     .then(client => {

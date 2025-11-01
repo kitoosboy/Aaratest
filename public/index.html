@@ -142,26 +142,49 @@
                             data-ux_mode="popup">
                         </div>
                         <div class="g_id_signin" data-type="standard"></div>
-                        <script>
-                            async function handleCredentialResponse(response) {
-                                console.log("Google Token:", response.credential); // ✅ should log something long
-                                const res = await fetch("/verify-google", {
-                                    method: "POST",
-                                    headers: { "Content-Type": "application/json" },
-                                    body: JSON.stringify({ token: response.credential }) // ✅ must send { token: ... }
-                                });
+                        <script src="https://accounts.google.com/gsi/client" async defer></script>
+<script>
+  function handleCredentialResponse(response) {
+    // Decode Google JWT
+    const data = parseJwt(response.credential);
 
-                                const data = await res.json();
-                                console.log("Server response:", data);
-                                if (data.success) {
-                                    alert("Welcome " + data.name);
-                                    // You can set cookies here
-                                    document.cookie = `user_email=${data.email}; path=/`;
-                                } else {
-                                    alert("Google login failed");
-                                }
-                            }
-                        </script>
+    // Send to backend to store in PostgreSQL
+    fetch("/google-login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ 
+        email: data.email, 
+        name: data.name 
+      })
+    })
+    .then(res => res.json())
+    .then(data => {
+      console.log("Google login response:", data);
+      localStorage.setItem("loggedInUser", data.user.username);
+      alert("Google Sign-In successful!");
+      window.location.href = "index.html"; // redirect to home or dashboard
+    })
+    .catch(err => console.error("Google login error:", err));
+  }
+
+  // Helper to decode JWT token
+  function parseJwt(token) {
+    return JSON.parse(atob(token.split('.')[1]));
+  }
+
+  // Render Google button
+  window.onload = function () {
+    google.accounts.id.initialize({
+      client_id: "980376587255-gfq843odsd62h1r2svvl9j3gbnno17ef.apps.googleusercontent.com",
+      callback: handleCredentialResponse
+    });
+    google.accounts.id.renderButton(
+      document.getElementById("googleSignInDiv"),
+      { theme: "outline", size: "large" }
+    );
+  };
+</script>
+
                             <!-- google auth -->
                             <script src="https://accounts.google.com/gsi/client" async defer></script>
                     </div>
