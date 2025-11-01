@@ -133,36 +133,122 @@ pool.connect()
     });
 
     // cart
-// Add to Cart Route
-app.post("/add-to-cart", async (req, res) => {
-    const { userId, productId, quantity } = req.body;
+// ✅ Add item to cart
+app.post("/cart/add", async (req, res) => {
+    const { userEmail, productName, productPrice, productImage, quantity } = req.body;
 
     try {
-        const existingItem = await pool.query(
-            "SELECT * FROM cart WHERE user_id = $1 AND product_id = $2",
-            [userId, productId]
+        // Check if item already exists
+        const existing = await pool.query(
+            "SELECT * FROM cart WHERE user_email = $1 AND product_name = $2",
+            [userEmail, productName]
         );
 
-        if (existingItem.rows.length > 0) {
-            const newQty = existingItem.rows[0].quantity + quantity;
+        if (existing.rows.length > 0) {
+            // Update quantity
+            const newQty = existing.rows[0].quantity + quantity;
             await pool.query(
-                "UPDATE cart SET quantity = $1 WHERE user_id = $2 AND product_id = $3",
-                [newQty, userId, productId]
+                "UPDATE cart SET quantity = $1 WHERE user_email = $2 AND product_name = $3",
+                [newQty, userEmail, productName]
             );
-            return res.json({ message: "Cart updated!" });
+        } else {
+            // Insert new item
+            await pool.query(
+                `INSERT INTO cart (user_email, product_name, product_price, product_image, quantity)
+                 VALUES ($1, $2, $3, $4, $5)`,
+                [userEmail, productName, productPrice, productImage, quantity]
+            );
         }
 
-        await pool.query(
-            "INSERT INTO cart (user_id, product_id, quantity) VALUES ($1, $2, $3)",
-            [userId, productId, quantity]
-        );
-
-        res.status(201).json({ message: "Product added to cart!" });
+        res.status(200).json({ message: "Item added/updated in cart successfully" });
     } catch (error) {
-        console.error("Add to Cart Error:", error);
-        res.status(500).json({ error: "Something went wrong." });
+        console.error("Add to cart error:", error);
+        res.status(500).json({ error: "Failed to add item to cart" });
     }
 });
+
+// ✅ Get all cart items for user
+app.get("/cart/:userEmail", async (req, res) => {
+    const { userEmail } = req.params;
+
+    try {
+        const result = await pool.query(
+            "SELECT * FROM cart WHERE user_email = $1 ORDER BY id DESC",
+            [userEmail]
+        );
+        res.json(result.rows);
+    } catch (error) {
+        console.error("Fetch cart error:", error);
+        res.status(500).json({ error: "Failed to load cart" });
+    }
+});
+
+// ✅ Remove item from cart
+app.delete("/cart/:userEmail/:productName", async (req, res) => {
+    const { userEmail, productName } = req.params;
+
+    try {
+        await pool.query(
+            "DELETE FROM cart WHERE user_email = $1 AND product_name = $2",
+            [userEmail, productName]
+        );
+        res.json({ message: "Item removed" });
+    } catch (error) {
+        console.error("Delete cart item error:", error);
+        res.status(500).json({ error: "Failed to delete item" });
+    }
+});
+
+// 🛒 Save cart item
+app.post("/save-cart", async (req, res) => {
+    const { email, cart } = req.body;
+
+    if (!email || !cart || !Array.isArray(cart)) {
+        return res.status(400).json({ success: false, message: "Invalid data" });
+    }
+
+    try {
+        // Remove old items for that user before saving
+        await pool.query("DELETE FROM user_cart WHERE user_email = $1", [email]);
+
+        // Insert each item
+        for (const item of cart) {
+            await pool.query(
+                `INSERT INTO user_cart (user_email, product_name, price, image, quantity)
+                 VALUES ($1, $2, $3, $4, $5)`,
+                [email, item.name, item.price, item.image, item.quantity]
+            );
+        }
+
+        res.json({ success: true, message: "Cart saved successfully" });
+    } catch (error) {
+        console.error("Error saving cart:", error);
+        res.status(500).json({ success: false, message: "Error saving cart" });
+    }
+});
+
+// 🧾 Fetch cart
+app.get("/get-cart", async (req, res) => {
+    try {
+        const user_email = req.query.user_email;
+
+        if (!user_email) {
+            return res.status(400).json({ success: false, message: "Missing user email" });
+        }
+
+        const result = await pool.query(
+            "SELECT * FROM cart WHERE user_email = $1 ORDER BY created_at DESC",
+            [user_email]
+        );
+
+        res.json({ success: true, cart: result.rows });
+    } catch (err) {
+        console.error("Error fetching cart:", err);
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+
 
 //form
 app.get('/get-user-details/:username', async (req, res) => {
