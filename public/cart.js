@@ -1,145 +1,171 @@
-const cartTableBody = document.getElementById('cart-table-body');
-const cartTotalElement = document.getElementById('cart-total');
-const subtotalElement = document.getElementById('subtotal');
-const cartCountElement = document.getElementById('cart-count');
-
-// Get user email from cookie
-function getUserEmail() {
-    const match = document.cookie.match(/user_email=([^;]+)/);
-    return match ? decodeURIComponent(match[1]) : null;
+// ==========================
+// Cookie Helper
+// ==========================
+function getCookie(name) {
+    const match = document.cookie.match(new RegExp("(^| )" + name + "=([^;]+)"));
+    return match ? decodeURIComponent(match[2]) : null;
 }
 
+// Global cart
 let cart = [];
 
-// 🧾 Load user's cart from DB
-async function loadCart() {
-    const email = getUserEmail();
-    if (!email) return console.warn("No user logged in");
+// DOM Elements
+const cartTableBody = document.getElementById("cart-table-body");
+const cartTotalElement = document.getElementById("cart-total");
+const subtotalElement = document.getElementById("subtotal");
+const cartCountElement = document.getElementById("cart-count");
 
-    const res = await fetch("/get-cart", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email })
-    });
-    const data = await res.json();
-    if (data.success) {
-        cart = data.cart || [];
+// ==========================
+// Load Cart from Server
+// ==========================
+async function loadCart() {
+    const email = getCookie("user_email");
+
+    if (!email) {
+        cartTableBody.innerHTML =
+            `<tr><td colspan="4" class="text-center">Please log in to view your cart.</td></tr>`;
+        updateCartCount(0);
+        cartTotalElement.textContent = "₹0.00";
+        subtotalElement.textContent = "₹0.00";
+        return;
+    }
+
+    try {
+        const res = await fetch(`/get-cart?user_email=${encodeURIComponent(email)}`);
+        const data = await res.json();
+
+        if (!data.success || !Array.isArray(data.cart) || data.cart.length === 0) {
+            cart = [];
+            cartTableBody.innerHTML =
+                `<tr><td colspan="4" class="text-center">Your cart is empty.</td></tr>`;
+            updateCartCount(0);
+            cartTotalElement.textContent = "₹0.00";
+            subtotalElement.textContent = "₹0.00";
+            return;
+        }
+
+        // Normalize DB → frontend
+        cart = data.cart.map(item => ({
+            id: item.id,
+            product_name: item.product_name,
+            product_price: parseFloat(item.product_price),
+            product_image: item.product_image,
+            quantity: item.quantity
+        }));
+
         renderCart();
+    } catch (err) {
+        console.error("Error loading cart:", err);
     }
 }
 
-// 💾 Save cart to DB
+// ==========================
+// Save Cart to DB
+// ==========================
 async function saveCartToDB() {
-    const email = getUserEmail();
-    if (!email) return console.warn("No user logged in");
+    const email = getCookie("user_email");
+    if (!email) return;
+
+    const payload = cart.map(it => ({
+        name: it.product_name,
+        price: it.product_price,
+        image: it.product_image,
+        quantity: it.quantity
+    }));
 
     await fetch("/save-cart", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, cart })
+        body: JSON.stringify({ email, cart: payload })
     });
 }
 
-// get cookie
-function getCookie(name) {
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) return parts.pop().split(';').shift();
-}
-
+// ==========================
+// Add to Cart
+// ==========================
 document.querySelectorAll(".add-to-cart-btn").forEach(button => {
-  button.addEventListener("click", async (e) => {
-    e.preventDefault();
+    button.addEventListener("click", async (e) => {
+        e.preventDefault();
 
-    const userEmail = getCookie("user_email");
-    if (!userEmail) {
-      alert("Please log in to add items to your cart.");
-      return;
-    }
+        const userEmail = getCookie("user_email");
+        if (!userEmail) {
+            alert("Please log in to add items to your cart.");
+            return;
+        }
 
-    const productName = button.getAttribute("data-name");
-    const productPrice = parseFloat(button.getAttribute("data-price"));
-    const productImage = button.getAttribute("data-image");
+        const productName = button.dataset.name;
+        const productPrice = parseFloat(button.dataset.price);
+        const productImage = button.dataset.image;
 
-    console.log("Sending cart data:", { userEmail, productName, productPrice, productImage });
+        try {
+            const response = await fetch("/cart/add", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    userEmail,
+                    productName,
+                    productPrice,
+                    productImage,
+                    quantity: 1
+                })
+            });
 
-    try {
-      const response = await fetch("/cart/add", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userEmail,
-          productName,
-          productPrice,
-          productImage,
-          quantity: 1
-        })
-      });
-
-      const data = await response.json();
-      console.log("Server response:", data);
-
-      if (response.ok) {
-        alert("✅ Added to cart!");
-      } else {
-        alert("❌ Failed to add to cart.");
-      }
-    } catch (error) {
-      console.error("Add to cart error:", error);
-      alert("Server error while adding item to cart.");
-    }
-  });
+            if (response.ok) {
+                await loadCart();
+                alert("Added to cart!");
+            } else {
+                alert("Could not add to cart.");
+            }
+        } catch (err) {
+            console.error(err);
+            alert("Server error adding to cart");
+        }
+    });
 });
 
-// ✅ Render Cart
-async function renderCart() {
+// ==========================
+// Render Cart UI
+// ==========================
+function renderCart() {
     const userEmail = getCookie("user_email");
+
     if (!userEmail) {
-        cartTableBody.innerHTML = `<tr><td colspan="4" class="text-center">Please log in to view your cart.</td></tr>`;
+        cartTableBody.innerHTML =
+            `<tr><td colspan="4" class="text-center">Please log in to view your cart.</td></tr>`;
         return;
     }
 
-    // ✅ Fetch cart items from DB
-    const res = await fetch(`/get-cart?user_email=${encodeURIComponent(userEmail)}`);
-    const data = await res.json();
-
-    if (!data.success || !data.cart || data.cart.length === 0) {
-        cartTableBody.innerHTML = `<tr><td colspan="4" class="text-center">Your cart is empty.</td></tr>`;
-        cartTotalElement.textContent = "₹0.00";
-        subtotalElement.textContent = "₹0.00";
+    if (!cart.length) {
+        cartTableBody.innerHTML =
+            `<tr><td colspan="4" class="text-center">Your cart is empty.</td></tr>`;
         updateCartCount(0);
         return;
     }
 
-    const cart = data.cart;
-    cartTableBody.innerHTML = '';
-
+    cartTableBody.innerHTML = "";
     let total = 0;
     let count = 0;
 
-    cart.forEach((item, index) => {
-        const subtotal = item.product_price * item.quantity;
+    cart.forEach(item => {
+        const price = item.product_price;
+        const subtotal = price * item.quantity;
+
         total += subtotal;
         count += item.quantity;
 
-        const row = document.createElement('tr');
+        const row = document.createElement("tr");
         row.innerHTML = `
             <td class="cart_product_img">
-                <a href="#"><img src="${item.product_image}" alt="${item.product_name}" width="80"></a>
+                <img src="${item.product_image}" width="80">
             </td>
             <td class="cart_product_desc">
                 <h5>${item.product_name}</h5>
             </td>
             <td class="price">
-                <span>₹${parseFloat(item.product_price).toFixed(2)}</span>
+                ₹${price.toFixed(2)}
             </td>
             <td class="qty">
-                <div class="qty-btn d-flex">
-                    <p>Qty</p>
-                    <div class="quantity">
-                        <input type="number" class="qty-text" value="${item.quantity}" readonly>
-                    </div>
-                </div>
+                <div class="quantity">${item.quantity}</div>
             </td>
         `;
         cartTableBody.appendChild(row);
@@ -150,54 +176,16 @@ async function renderCart() {
     updateCartCount(count);
 }
 
+// ==========================
+// Update Cart Count
+// ==========================
 function updateCartCount(count) {
-    const el = document.getElementById('cart-count');
-    if (el) el.textContent = `(${count})`;
+    if (cartCountElement) {
+        cartCountElement.textContent = `(${count})`;
+    }
 }
 
-function getCookie(name) {
-    const match = document.cookie.match(new RegExp("(^| )" + name + "=([^;]+)"));
-    return match ? match[2] : null;
-}
-
-document.addEventListener('DOMContentLoaded', renderCart);
-
-function attachQuantityEvents() {
-    document.querySelectorAll('.qty-plus').forEach(btn => {
-        btn.addEventListener('click', e => {
-            const index = e.currentTarget.dataset.index;
-            cart[index].quantity++;
-            renderCart();
-            saveCartToDB();
-        });
-    });
-
-    document.querySelectorAll('.qty-minus').forEach(btn => {
-        btn.addEventListener('click', e => {
-            const index = e.currentTarget.dataset.index;
-            if (cart[index].quantity > 1) cart[index].quantity--;
-            else cart.splice(index, 1);
-            renderCart();
-            saveCartToDB();
-        });
-    });
-}
-
-// 🛍️ Add-to-Cart button click
-document.querySelectorAll(".add-to-cart-btn").forEach(btn => {
-    btn.addEventListener("click", e => {
-        e.preventDefault();
-        const name = btn.dataset.name;
-        const price = parseFloat(btn.dataset.price);
-        const image = btn.dataset.image;
-
-        const existing = cart.find(item => item.name === name);
-        if (existing) existing.quantity++;
-        else cart.push({ name, price, image, quantity: 1 });
-
-        renderCart();
-        saveCartToDB();
-    });
-});
-
+// ==========================
+// Init
+// ==========================
 document.addEventListener("DOMContentLoaded", loadCart);

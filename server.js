@@ -56,6 +56,7 @@ app.post("/signup", async (req, res) => {
     }
 });
 
+
 // Login Route
 app.post("/login", async (req, res) => {
     const { email, password } = req.body;
@@ -69,12 +70,22 @@ app.post("/login", async (req, res) => {
 
         if (!validPassword) return res.status(400).json({ error: "Invalid credentials!" });
 
+        // IMPORTANT: set a cookie so frontend can detect logged-in user
+        // Adjust cookie options (secure: true) if you run over HTTPS in production
+        res.cookie("user_email", user.email, {
+            httpOnly: false,   // frontend JS needs to read this cookie
+            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+            sameSite: "Lax"
+        });
+
+        // Return success with user object
         res.status(200).json({ message: "Login successful!", user });
     } catch (error) {
         console.error("Login Error:", error);
         res.status(500).json({ error: "Something went wrong. Please try again later." });
     }
 });
+
 
 
 // Google Login Route
@@ -227,6 +238,7 @@ app.post("/save-cart", async (req, res) => {
     }
 });
 
+
 // 🧾 Fetch cart
 app.get("/get-cart", async (req, res) => {
     try {
@@ -241,12 +253,14 @@ app.get("/get-cart", async (req, res) => {
             [user_email]
         );
 
+        // Return a consistent JSON shape the frontend expects
         res.json({ success: true, cart: result.rows });
     } catch (err) {
         console.error("Error fetching cart:", err);
         res.status(500).json({ success: false, error: err.message });
     }
 });
+
 
 
 
